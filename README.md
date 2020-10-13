@@ -1,6 +1,6 @@
-# Container VMM
+# Container Virtual Machine Manager
 
-Run VMs inside a Docker container.
+Run VMs and manage their lifecycle inside a Docker container.
 
 ## Requirements
 
