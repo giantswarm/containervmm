@@ -1,6 +1,6 @@
 module github.com/mazzy89/containervmm
 
-go 1.14
+go 1.15
 
 replace (
 	github.com/kata-containers/govmm => github.com/mazzy89/govmm v0.0.0-fix-fwcfg

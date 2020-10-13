@@ -1,6 +1,6 @@
 # Container Virtual Machine Manager
 
-Run VMs and manage their lifecycle inside a Docker container.
+Run Virtual Machines and manage their lifecycle inside a Docker container.
 
 ## Requirements
 
@@ -10,6 +10,7 @@ Run VMs and manage their lifecycle inside a Docker container.
 ## Hypervisor supported
 
 * QEMU
+* Firecracker (Coming)
 
 ## OS Supported
 

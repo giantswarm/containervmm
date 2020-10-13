@@ -19,9 +19,11 @@ package main
 
 import (
 	"flag"
+	"os"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
-	pflag "github.com/spf13/pflag"
+	"github.com/spf13/pflag"
 
 	"github.com/mazzy89/containervmm/pkg/api"
 	"github.com/mazzy89/containervmm/pkg/disk"
@@ -50,6 +52,25 @@ type options struct {
 
 	sanityChecks bool
 }
+
+func envValueOrDefaultString(envName string, def string) string {
+	envVal := os.Getenv(envName)
+	if envVal == "" {
+		envVal = def
+	}
+
+	return envVal
+}
+
+func envValueOrDefaultBool(envName string, def bool) bool {
+	envVal, err := strconv.ParseBool(os.Getenv(envName))
+	if !envVal && err != nil {
+		envVal = def
+	}
+
+	return envVal
+}
+
 
 func main() {
 	var options options
