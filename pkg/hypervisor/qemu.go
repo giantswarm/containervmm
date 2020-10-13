@@ -59,6 +59,10 @@ var kernelParams = [][]string{
 	{"flatcar.first_boot", "1"},
 }
 
+type qmpLogger struct {
+	*log.Logger
+}
+
 func ExecuteQEMU(guest api.Guest) error {
 	// create a context
 	ctx := context.Background()
@@ -69,10 +73,7 @@ func ExecuteQEMU(guest api.Guest) error {
 		return fmt.Errorf("failed to create sandbox: %v", err)
 	}
 
-	// get logger
-	logger := logs.Logger
-
-	if _, err := qemu.LaunchQemu(qemuConfig, logger); err != nil {
+	if _, err := qemu.LaunchQemu(qemuConfig, newQMPLogger()); err != nil {
 		return fmt.Errorf("failed to launch QEMU instance: %v", err)
 	}
 
@@ -84,11 +85,11 @@ func ExecuteQEMU(guest api.Guest) error {
 	disconnectedCh := make(chan struct{})
 
 	// Set up our options.
-	config := qemu.QMPConfig{Logger: logger}
+	cfg := qemu.QMPConfig{Logger: newQMPLogger()}
 
 	// Start monitoring the qemu instance.  This functon will block until we have
 	// connect to the QMP socket and received the welcome message.
-	q, _, err := qemu.QMPStart(ctx, qmpUDS, config, disconnectedCh)
+	q, _, err := qemu.QMPStart(ctx, qmpUDS, cfg, disconnectedCh)
 	if err != nil {
 		return fmt.Errorf("failed to connect to the QMP socket: %v", err)
 	}
@@ -105,6 +106,16 @@ func ExecuteQEMU(guest api.Guest) error {
 	<-disconnectedCh
 
 	return nil
+}
+
+func newQMPLogger() qmpLogger {
+	return qmpLogger{
+		logs.Logger,
+	}
+}
+
+func (l qmpLogger) V(level int32) bool {
+	return l.IsLevelEnabled(log.Level(level))
 }
 
 func createSandbox(ctx context.Context, guest api.Guest) (qemu.Config, error) {

@@ -21,30 +21,13 @@ import (
 	golog "log"
 	"os"
 
-	"github.com/kata-containers/govmm/qemu"
 	log "github.com/sirupsen/logrus"
 )
 
-// embed logrus logger to implement
-// V method from QMPLog Interface
-type logger struct {
-	*log.Logger
-}
-
-var Logger *logger
-
-var _ qemu.QMPLog = &logger{}
-
-func newLogger() *logger {
-	l := &logger{
-		Logger: log.StandardLogger(),
-	}
-
-	return l
-}
+var Logger *log.Logger
 
 func init() {
-	Logger = newLogger()
+	Logger = log.StandardLogger()
 
 	Logger.SetOutput(os.Stdout)
 
@@ -58,8 +41,4 @@ func init() {
 	// as we stream the logs from stdlib log to this logrus instance.
 	golog.SetFlags(0)
 	golog.SetOutput(Logger.Writer())
-}
-
-func (l logger) V(level int32) bool {
-	return l.IsLevelEnabled(log.Level(level))
 }
