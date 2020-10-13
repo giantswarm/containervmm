@@ -126,26 +126,8 @@ func main() {
 		log.Fatalf("An error occured during the start of the DHCP servers: %v", err)
 	}
 
-	// Transfer NICs information to the Guest API
-	appendGuestNICs := func(nics []api.NetworkInterface, dhcpIfaces []network.DHCPInterface) []api.NetworkInterface {
-		var guestNICs []api.NetworkInterface
-
-		for i := range dhcpIfaces {
-			dhcpIface := dhcpIfaces[i]
-
-			guestNICs = append(guestNICs, api.NetworkInterface{
-				GatewayIP:   dhcpIface.GatewayIP,
-				InterfaceIP: &dhcpIface.VMIPNet.IP,
-				MacAddr:     dhcpIface.MACFilter,
-				TAP:         dhcpIface.VMTAP,
-			})
-		}
-
-		return guestNICs
-	}
-
-	var nics []api.NetworkInterface
-	guest.NICs = appendGuestNICs(nics, dhcpIfaces)
+	// bind DHCP Network Interfaces to the Guest object
+	network.BindDHCPInterfaces(&guest, dhcpIfaces)
 
 	// create rootfs
 	sizes := []string{options.guestRootDiskSize}
