@@ -3,7 +3,7 @@ module github.com/mazzy89/containervmm
 go 1.15
 
 replace (
-    // point govmm to my fork in the w
+	// point govmm to my fork
 	github.com/kata-containers/govmm => github.com/mazzy89/govmm v0.0.0-20201013150626-4a0b37a599a6
 	github.com/vishvananda/netlink => github.com/twelho/netlink v1.1.1-ageing
 )

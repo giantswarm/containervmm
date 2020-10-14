@@ -71,7 +71,6 @@ func envValueOrDefaultBool(envName string, def bool) bool {
 	return envVal
 }
 
-
 func main() {
 	var options options
 

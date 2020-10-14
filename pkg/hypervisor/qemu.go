@@ -53,9 +53,24 @@ const (
 )
 
 var kernelParams = [][]string{
+	{"tsc", "reliable"},
+	{"no_timer_check", ""},
+	{"rcupdate.rcu_expedited", "1"},
+	{"i8042.direct", "1"},
+	{"i8042.dumbkbd", "1"},
+	{"i8042.nopnp", "1"},
+	{"i8042.noaux", "1"},
+	{"noreplace-smp", ""},
+	{"reboot", "k"},
 	// this is used to read the VM output via the UNIX socket
 	{"console", "hvc0"},
-	{"reboot", "k"},
+	{"console", "hvc1"},
+	{"cryptomgr.notests", ""},
+	{"net.ifnames", "0"},
+	{"pci", "lastbus=0"},
+}
+
+var kernelFlatcarParams = [][]string{
 	{"flatcar.first_boot", "1"},
 }
 
@@ -211,6 +226,8 @@ func kernel(guest api.Guest) (qemu.Kernel, error) {
 		}
 	}
 
+	kernelParams = append(kernelParams, kernelFlatcarParams...)
+
 	k.Params = kernelCommandLine(kernelParams)
 
 	return k, nil
@@ -361,7 +378,6 @@ func appendConsoleDevice(devices []qemu.Device) []qemu.Device {
 	serial := qemu.SerialDevice{
 		Driver:    qemu.VirtioSerial,
 		ID:        "serial0",
-		Transport: qemu.TransportPCI,
 	}
 
 	devices = append(devices, serial)
