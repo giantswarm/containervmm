@@ -52,6 +52,7 @@ const (
 	powerdownTimeout = 1 * time.Minute
 )
 
+// These kernel parameters will be appended
 var kernelParams = [][]string{
 	{"tsc", "reliable"},
 	{"no_timer_check", ""},
@@ -68,10 +69,6 @@ var kernelParams = [][]string{
 	{"cryptomgr.notests", ""},
 	{"net.ifnames", "0"},
 	{"pci", "lastbus=0"},
-}
-
-var kernelFlatcarParams = [][]string{
-	{"flatcar.first_boot", "1"},
 }
 
 type qmpLogger struct {
@@ -199,6 +196,8 @@ func vga() string {
 }
 
 func kernel(guest api.Guest) (qemu.Kernel, error) {
+	var kp [][]string
+
 	if !util.FileExists(guest.OS.Kernel) {
 		return qemu.Kernel{}, fmt.Errorf("file %s not found", guest.OS.Kernel)
 	}
@@ -221,19 +220,25 @@ func kernel(guest api.Guest) (qemu.Kernel, error) {
 			rootDisk := []string{"root", diskSerial}
 			rootFlag := []string{"rootflags", "rw"}
 
-			kernelParams = append(kernelParams, rootDisk)
-			kernelParams = append(kernelParams, rootFlag)
+			kp = append(kp, rootDisk)
+			kp = append(kp, rootFlag)
 		}
 	}
 
-	kernelParams = append(kernelParams, kernelFlatcarParams...)
+	// if ignition is found add the parameter
+	// Ref: https://docs.flatcar-linux.org/ignition/what-is-ignition/#when-is-ignition-executed
+	if guest.OS.IgnitionConfig != "" {
+		kp = append(kp, []string{"flatcar.first_boot", "1"})
+	}
 
-	k.Params = kernelCommandLine(kernelParams)
+	kp = append(kp, kernelParams...)
+
+	k.Params = kernelCmdLine(kp)
 
 	return k, nil
 }
 
-func kernelCommandLine(params [][]string) string {
+func kernelCmdLine(params [][]string) string {
 	var line string
 	var lastElemIndex int = len(params) - 1
 
