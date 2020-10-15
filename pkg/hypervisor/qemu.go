@@ -216,12 +216,9 @@ func kernel(guest api.Guest) (qemu.Kernel, error) {
 
 		if d.IsRoot {
 			diskSerial := fmt.Sprintf("/dev/disk/by-id/virtio-%s", d.ID)
-
 			rootDisk := []string{"root", diskSerial}
-			rootFlag := []string{"rootflags", "rw"}
 
 			kp = append(kp, rootDisk)
-			kp = append(kp, rootFlag)
 		}
 	}
 
@@ -233,24 +230,28 @@ func kernel(guest api.Guest) (qemu.Kernel, error) {
 
 	kp = append(kp, kernelParams...)
 
-	k.Params = kernelCmdLine(kp)
+	k.Params = serializeKernelParams(kp)
 
 	return k, nil
 }
 
-func kernelCmdLine(params [][]string) string {
+func serializeKernelParams(params [][]string) string {
 	var line string
 	var lastElemIndex int = len(params) - 1
 
 	for i, p := range params {
-		line += fmt.Sprintf("%s=%s", p[0], p[1])
+		if p[1] != "" {
+			line += fmt.Sprintf("%s=%s", p[0], p[1])
+		} else {
+			line += p[0]
+		}
 
 		if i != lastElemIndex {
 			line += " "
 		}
 	}
 
-	return strconv.Quote(line)
+	return line
 }
 
 func memory(guest api.Guest) qemu.Memory {
@@ -381,8 +382,8 @@ func buildRootBlockDevice(disk api.Disk) qemu.BlockDevice {
 
 func appendConsoleDevice(devices []qemu.Device) []qemu.Device {
 	serial := qemu.SerialDevice{
-		Driver:    qemu.VirtioSerial,
-		ID:        "serial0",
+		Driver: qemu.VirtioSerial,
+		ID:     "serial0",
 	}
 
 	devices = append(devices, serial)
