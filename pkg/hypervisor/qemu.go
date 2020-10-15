@@ -236,22 +236,17 @@ func kernel(guest api.Guest) (qemu.Kernel, error) {
 }
 
 func serializeKernelParams(params [][]string) string {
-	var line string
+	var paramsStr string
 	var lastElemIndex int = len(params) - 1
 
 	for i, p := range params {
-		if p[1] != "" {
-			line += fmt.Sprintf("%s=%s", p[0], p[1])
-		} else {
-			line += p[0]
-		}
-
+		paramsStr += fmt.Sprintf("%s=%s", p[0], p[1])
 		if i != lastElemIndex {
-			line += " "
+			paramsStr += " "
 		}
 	}
 
-	return line
+	return paramsStr
 }
 
 func memory(guest api.Guest) qemu.Memory {
