@@ -214,32 +214,15 @@ func addLink(link netlink.Link) (err error) {
 	return
 }
 
-// This is a MAC address persistence workaround, netlink.LinkSetMaster{,ByIndex}()
-// has a bug that arbitrarily changes the MAC addresses of the bridge and virtual
-// device to be bound to it. TODO: Remove when fixed upstream
 func setMaster(master netlink.Link, links ...netlink.Link) error {
 	masterIndex := master.Attrs().Index
-	masterMAC, err := getMAC(master)
-	if err != nil {
-		return err
-	}
-
 	for _, link := range links {
-		mac, err := getMAC(link)
-		if err != nil {
-			return err
-		}
-
-		if err = netlink.LinkSetMasterByIndex(link, masterIndex); err != nil {
-			return err
-		}
-
-		if err = netlink.LinkSetHardwareAddr(link, mac); err != nil {
+		if err := netlink.LinkSetMasterByIndex(link, masterIndex); err != nil {
 			return err
 		}
 	}
 
-	return netlink.LinkSetHardwareAddr(master, masterMAC)
+	return nil
 }
 
 // getMAC fetches the generated MAC address for the given link
