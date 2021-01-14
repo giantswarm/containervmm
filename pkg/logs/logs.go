@@ -35,6 +35,7 @@ func init() {
 	Logger.SetFormatter(&log.TextFormatter{
 		DisableTimestamp: false,
 		FullTimestamp:    true,
+		DisableQuote:     true,
 	})
 
 	// Disable the stdlib's automatic add of the timestamp in beginning of the log message,
