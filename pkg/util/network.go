@@ -41,7 +41,7 @@ func NewMAC(buffer *[]string) error {
 		macBytes[0] = (macBytes[0] | 2) & 0xfe
 
 		// Convert the byte slice to a string literally
-		mac = fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x", macBytes[0], macBytes[1], macBytes[2], macBytes[3], macBytes[4], macBytes[5])
+		mac = fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x", macBytes[0], macBytes[1], macBytes[2], macBytes[3], macBytes[4], macBytes[5]) //nolint:lll
 
 		// If the generated MAC is unique break the generator loop
 		unique := true

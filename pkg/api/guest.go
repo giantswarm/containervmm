@@ -1,6 +1,9 @@
 package api
 
-import "net"
+import (
+	"github.com/vishvananda/netlink"
+	"net"
+)
 
 // Guest describes the configuration of a VM
 // created and run by QEMU
@@ -31,6 +34,7 @@ type OS struct {
 type NetworkInterface struct {
 	GatewayIP   *net.IP
 	InterfaceIP *net.IP
+	Routes      []netlink.Route
 	MacAddr     string
 	DNSServers  []string
 	TAP         string

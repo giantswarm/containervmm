@@ -28,6 +28,7 @@ func BindDHCPInterfaces(guest *api.Guest, dhcpIfaces []DHCPInterface) {
 		nics = append(nics, api.NetworkInterface{
 			GatewayIP:   dhcpIface.GatewayIP,
 			InterfaceIP: &dhcpIface.VMIPNet.IP,
+			Routes:      dhcpIface.Routes,
 			MacAddr:     dhcpIface.MACFilter,
 			TAP:         dhcpIface.VMTAP,
 		})
