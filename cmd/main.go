@@ -113,7 +113,7 @@ func main() {
 	}
 
 	// Setup networking inside of the container, return the available interfaces
-	dhcpIfaces, err := network.SetupInterfaces()
+	dhcpIfaces, err := network.SetupInterfaces(&guest)
 	if err != nil {
 		log.Fatalf("An error occured during the the setup of the network: %v", err)
 	}
@@ -124,9 +124,6 @@ func main() {
 	if err = network.StartDHCPServers(guest, dhcpIfaces); err != nil {
 		log.Fatalf("An error occured during the start of the DHCP servers: %v", err)
 	}
-
-	// bind DHCP Network Interfaces to the Guest object
-	network.BindDHCPInterfaces(&guest, dhcpIfaces)
 
 	// create rootfs
 	sizes := []string{options.guestRootDiskSize}

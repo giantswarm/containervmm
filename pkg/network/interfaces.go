@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/mazzy89/containervmm/pkg/api"
+
 	"github.com/mazzy89/containervmm/pkg/util"
 
 	log "github.com/sirupsen/logrus"
@@ -32,8 +34,9 @@ var ignoreInterfaces = map[string]struct{}{
 	"lo": {},
 }
 
-func SetupInterfaces() ([]DHCPInterface, error) {
+func SetupInterfaces(guest *api.Guest) ([]DHCPInterface, error) {
 	var dhcpIfaces []DHCPInterface
+	var nics []api.NetworkInterface
 
 	netHandle, err := netlink.NewHandle()
 	if err != nil {
@@ -79,6 +82,15 @@ func SetupInterfaces() ([]DHCPInterface, error) {
 
 		dhcpIfaces = append(dhcpIfaces, *dhcpIface)
 
+		// bind DHCP Network Interfaces to the Guest object
+		nics = append(nics, api.NetworkInterface{
+			GatewayIP:   gw,
+			InterfaceIP: &ipNet.IP,
+			Routes:      routes,
+			MacAddr:     dhcpIface.MACFilter,
+			TAP:         dhcpIface.VMTAP,
+		})
+
 		// This is an interface we care about
 		interfacesCount++
 	}
@@ -86,6 +98,8 @@ func SetupInterfaces() ([]DHCPInterface, error) {
 	if interfacesCount == 0 {
 		return nil, fmt.Errorf("no active or valid interfaces available yet")
 	}
+
+	guest.NICs = nics
 
 	return dhcpIfaces, nil
 }
