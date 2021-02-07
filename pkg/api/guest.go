@@ -1,8 +1,9 @@
 package api
 
 import (
-	"github.com/vishvananda/netlink"
 	"net"
+
+	"github.com/vishvananda/netlink"
 )
 
 // Guest describes the configuration of a VM

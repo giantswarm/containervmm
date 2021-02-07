@@ -129,7 +129,7 @@ func takeAddress(netHandle *netlink.Handle, iface *net.Interface) (*net.IPNet, *
 		routes, err := netHandle.RouteList(link, netlink.FAMILY_ALL)
 		if err != nil {
 			return nil, nil, nil, false, fmt.Errorf("failed to get default gateway for interface %q: %v", iface.Name, err)
-		}dock
+		}
 		for _, rt := range routes {
 			if rt.Gw != nil {
 				gw = &rt.Gw
