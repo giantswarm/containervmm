@@ -22,21 +22,27 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mazzy89/containervmm/pkg/api"
 )
 
-func CreateDisks(guest *api.Guest, sizes []string) error {
-	for i := range sizes {
-		size := sizes[i]
+func CreateDisks(guest *api.Guest, disks [][]string) error {
+	for i := range disks {
+		disk := disks[i]
+
+		id, size := disk[0], disk[1]
+		isRoot, err := strconv.ParseBool(disk[2])
+		if err != nil {
+			return err
+		}
 
 		gd := api.Disk{
-			// TODO(mazzy89): make this dynamic from input value
-			ID:     "rootfs",
+			ID:     id,
 			Size:   size,
-			IsRoot: true,
+			IsRoot: isRoot,
 		}
 
 		gd.File = gd.ID + ".img"

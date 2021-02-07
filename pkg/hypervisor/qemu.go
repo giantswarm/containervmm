@@ -219,6 +219,8 @@ func kernel(guest api.Guest) (qemu.Kernel, error) {
 			rootDisk := []string{"root", diskSerial}
 
 			kp = append(kp, rootDisk)
+
+			break
 		}
 	}
 
@@ -237,7 +239,7 @@ func kernel(guest api.Guest) (qemu.Kernel, error) {
 
 func serializeKernelParams(params [][]string) string {
 	var paramsStr string
-	var lastElemIndex int = len(params) - 1
+	var lastElemIndex = len(params) - 1
 
 	for i, p := range params {
 		paramsStr += fmt.Sprintf("%s=%s", p[0], p[1])
@@ -251,6 +253,7 @@ func serializeKernelParams(params [][]string) string {
 
 func memory(guest api.Guest) qemu.Memory {
 	m := qemu.Memory{Size: guest.Memory}
+
 	return m
 }
 
@@ -350,15 +353,17 @@ func buildNetworkDevice(guestNIC api.NetworkInterface) qemu.NetDevice {
 }
 
 func appendBlockDevices(devices []qemu.Device, guestDisks []api.Disk) []qemu.Device {
-	blkDevice := guestDisks[0]
+	for i := range guestDisks {
+		blkDevice := guestDisks[i]
 
-	device := buildRootBlockDevice(blkDevice)
-	devices = append(devices, device)
+		device := buildBlockDevice(blkDevice)
+		devices = append(devices, device)
+	}
 
 	return devices
 }
 
-func buildRootBlockDevice(disk api.Disk) qemu.BlockDevice {
+func buildBlockDevice(disk api.Disk) qemu.BlockDevice {
 	// we define here because in the lib is not defined
 	var RAW qemu.BlockDeviceFormat = "raw"
 

@@ -21,12 +21,14 @@ import (
 	"flag"
 	"os"
 	"strconv"
+	"strings"
+
+	"github.com/mazzy89/containervmm/pkg/disk"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 
 	"github.com/mazzy89/containervmm/pkg/api"
-	"github.com/mazzy89/containervmm/pkg/disk"
 	"github.com/mazzy89/containervmm/pkg/distro"
 	"github.com/mazzy89/containervmm/pkg/hypervisor"
 	"github.com/mazzy89/containervmm/pkg/logs"
@@ -40,9 +42,10 @@ var logLevel = log.InfoLevel
 type options struct {
 	guestName string
 
-	guestMemory       string
-	guestCPUs         string
-	guestRootDiskSize string
+	guestMemory          string
+	guestCPUs            string
+	guestRootDiskSize    string
+	guestAdditionalDisks string
 
 	flatcarChannel string
 	flatcarVersion string
@@ -71,6 +74,22 @@ func envValueOrDefaultBool(envName string, def bool) bool {
 	return envVal
 }
 
+func serializeGuestAdditionalDisks(disks [][]string, additionalDisks string) [][]string {
+	// all additional volumes here are not root
+	isRoot := "false"
+
+	additionalDisksSlice := strings.Split(additionalDisks, ",")
+
+	for _, diskStr := range additionalDisksSlice {
+		d := strings.Split(diskStr, ":")
+		id, size := d[0], d[1]
+
+		disks = append(disks, []string{id, size, isRoot})
+	}
+
+	return disks
+}
+
 func main() {
 	var options options
 
@@ -82,6 +101,7 @@ func main() {
 	flag.StringVar(&options.guestCPUs, "guest-cpus", envValueOrDefaultString("GUEST_CPUS", "1"), "guest cpus")
 
 	flag.StringVar(&options.guestRootDiskSize, "guest-root-disk-size", envValueOrDefaultString("GUEST_ROOT_DISK_SIZE", "20G"), "guest root disk size")
+	flag.StringVar(&options.guestAdditionalDisks, "guest-additional-disks", envValueOrDefaultString("GUEST_ADDITIONAL_DISKS", ""), "guest additional disks to mount separated by commas (i.e. dockerfs:100GB,kubeletfs:20GB)")
 
 	flag.StringVar(&options.flatcarChannel, "flatcar-channel", envValueOrDefaultString("FLATCAR_CHANNEL", "stable"), "flatcar channel")
 	flag.StringVar(&options.flatcarVersion, "flatcar-version", envValueOrDefaultString("FLATCAR_VERSION", ""), "flatcar version")
@@ -125,10 +145,16 @@ func main() {
 		log.Fatalf("An error occured during the start of the DHCP servers: %v", err)
 	}
 
-	// create rootfs
-	sizes := []string{options.guestRootDiskSize}
+	// create rootfs and other volumes
+	disks := [][]string{
+		{"rootfs", options.guestRootDiskSize, "true"},
+	}
 
-	if err := disk.CreateDisks(&guest, sizes); err != nil {
+	if options.guestAdditionalDisks != "" {
+		disks = serializeGuestAdditionalDisks(disks, options.guestAdditionalDisks)
+	}
+
+	if err := disk.CreateDisks(&guest, disks); err != nil {
 		log.Fatalf("An error occured during the creation of disks: %v", err)
 	}
 
