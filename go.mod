@@ -2,8 +2,6 @@ module github.com/mazzy89/containervmm
 
 go 1.15
 
-replace github.com/vishvananda/netlink => github.com/twelho/netlink v1.1.1-ageing
-
 require (
 	code.cloudfoundry.org/bytefmt v0.0.0-20200131002437-cf55d5288a48
 	github.com/kata-containers/govmm v0.0.0-20201016132830-11b6ac380d2d
