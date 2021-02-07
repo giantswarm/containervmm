@@ -18,47 +18,22 @@ limitations under the License.
 package util
 
 import (
-	"crypto/rand"
-	"fmt"
+	cryptoRand "crypto/rand"
+	"net"
 )
 
-// Fills the given string slice with unique MAC addresses
-func NewMAC(buffer *[]string) error {
-	var mac string
-	var macBytes []byte
-
-	for {
-		if len(*buffer) == cap(*buffer) {
-			break
-		}
-
-		macBytes = make([]byte, 6)
-		if _, err := rand.Read(macBytes); err != nil {
-			return fmt.Errorf("failed to generate MAC: %v", err)
-		}
-
-		// Set local bit, ensure unicast address
-		macBytes[0] = (macBytes[0] | 2) & 0xfe
-
-		// Convert the byte slice to a string literally
-		mac = fmt.Sprintf("%02x:%02x:%02x:%02x:%02x:%02x", macBytes[0], macBytes[1], macBytes[2], macBytes[3], macBytes[4], macBytes[5]) //nolint:lll
-
-		// If the generated MAC is unique break the generator loop
-		unique := true
-		for _, testMac := range *buffer {
-			if mac == testMac {
-				unique = false
-				break
-			}
-		}
-
-		// Generate a new MAC if it's not unique
-		if !unique {
-			continue
-		}
-
-		*buffer = append(*buffer, mac)
+func GenerateRandomPrivateMacAddr() (string, error) {
+	buf := make([]byte, 6)
+	_, err := cryptoRand.Read(buf)
+	if err != nil {
+		return "", err
 	}
 
-	return nil
+	// Set the local bit for local addresses
+	// Addresses in this range are local mac addresses:
+	// x2-xx-xx-xx-xx-xx , x6-xx-xx-xx-xx-xx , xA-xx-xx-xx-xx-xx , xE-xx-xx-xx-xx-xx
+	buf[0] = (buf[0] | 2) & 0xfe
+
+	hardAddr := net.HardwareAddr(buf)
+	return hardAddr.String(), nil
 }

@@ -19,9 +19,10 @@ package network
 
 import (
 	"fmt"
-	"github.com/vishvananda/netlink"
 	"net"
 	"time"
+
+	"github.com/vishvananda/netlink"
 
 	dhcp "github.com/krolaw/dhcp4"
 	"github.com/krolaw/dhcp4/conn"
@@ -29,7 +30,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mazzy89/containervmm/pkg/api"
-	"github.com/mazzy89/containervmm/pkg/util"
 )
 
 var leaseDuration, _ = time.ParseDuration("4294967295s") // Infinite lease time
@@ -47,12 +47,6 @@ type DHCPInterface struct {
 }
 
 func StartDHCPServers(guest api.Guest, dhcpIfaces []DHCPInterface) error {
-	// Generate the MAC addresses for the VM's adapters
-	macAddresses := make([]string, 0, len(dhcpIfaces))
-	if err := util.NewMAC(&macAddresses); err != nil {
-		return fmt.Errorf("failed to generate MAC addresses: %v", err)
-	}
-
 	// Fetch the DNS servers given to the container
 	clientConfig, err := dns.ClientConfigFromFile("/etc/resolv.conf")
 	if err != nil {
@@ -64,9 +58,6 @@ func StartDHCPServers(guest api.Guest, dhcpIfaces []DHCPInterface) error {
 
 		// Set the VM hostname to the VM ID
 		dhcpIface.Hostname = guest.Name
-
-		// Set the MAC address filter for the DHCP server
-		dhcpIface.MACFilter = macAddresses[i]
 
 		// Add the DNS servers from the container
 		dhcpIface.SetDNSServers(clientConfig.Servers)
