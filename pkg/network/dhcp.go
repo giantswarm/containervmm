@@ -149,18 +149,22 @@ func formClasslessRoutes(routes *[]netlink.Route) (formattedRoutes []byte) {
 				Mask: net.CIDRMask(0, 32),
 			}
 		}
+
 		ip := route.Dst.IP.To4()
 		width, _ := route.Dst.Mask.Size()
 		octets := 0
 		if width > 0 {
 			octets = (width-1)/8 + 1
 		}
+
 		newRoute := append([]byte{byte(width)}, ip[0:octets]...)
 		gateway := route.Gw.To4()
 		if gateway == nil {
 			gateway = []byte{0, 0, 0, 0}
 		}
+
 		newRoute = append(newRoute, gateway...)
+
 		formattedRoutes = append(formattedRoutes, newRoute...)
 	}
 

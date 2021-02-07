@@ -14,7 +14,8 @@ type Guest struct {
 	CPUs   string
 	Memory string
 
-	Disks []Disk
+	Disks       []Disk
+	HostVolumes []HostVolume
 
 	// Guest OS
 	OS OS
@@ -57,4 +58,14 @@ type Disk struct {
 	IsRoot bool
 
 	Filesystem FsType
+}
+
+// HostVolume is a shared volume between the host and the VM,
+// defined by its mount tag and its host path.
+type HostVolume struct {
+	// MountTag is a label used as a hint to the guest.
+	MountTag string
+
+	// HostPath is the host filesystem path for this volume.
+	HostPath string
 }

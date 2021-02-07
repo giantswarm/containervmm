@@ -35,6 +35,7 @@ func CreateDisks(guest *api.Guest, disks [][]string) error {
 
 		id, size := disk[0], disk[1]
 		isRoot, err := strconv.ParseBool(disk[2])
+
 		if err != nil {
 			return err
 		}
