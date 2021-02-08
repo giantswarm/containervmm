@@ -11,7 +11,7 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o ./bin/containervmm ./cmd/main.go \
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./bin/containervmm ./containervmm/main.go \
     && chmod +x ./bin/containervmm
 
 FROM fedora:33

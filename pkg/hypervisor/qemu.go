@@ -310,6 +310,8 @@ func buildDevices(guest api.Guest) []qemu.Device {
 
 	// append all the block devices
 	devices = appendBlockDevices(devices, guest.Disks)
+	// append all the FS devices
+	devices = appendFSDevices(devices, guest.HostVolumes)
 
 	// append console device
 	devices = appendConsoleDevice(devices)
@@ -397,6 +399,32 @@ func appendConsoleDevice(devices []qemu.Device) []qemu.Device {
 	}
 
 	devices = append(devices, console)
+
+	return devices
+}
+
+func buildHostVolumeDevice(index int, hostVolume api.HostVolume) qemu.FSDevice {
+	id := fmt.Sprintf("fsdev%d", index)
+
+	fsdev := qemu.FSDevice{
+		Driver:        qemu.Virtio9P,
+		FSDriver:      qemu.Local,
+		ID:            id,
+		Path:          hostVolume.HostPath,
+		MountTag:      hostVolume.MountTag,
+		SecurityModel: qemu.None,
+	}
+
+	return fsdev
+}
+
+func appendFSDevices(devices []qemu.Device, guestHostVolumes []api.HostVolume) []qemu.Device {
+	for i := range guestHostVolumes {
+		fsDevice := guestHostVolumes[i]
+
+		device := buildHostVolumeDevice(i, fsDevice)
+		devices = append(devices, device)
+	}
 
 	return devices
 }

@@ -22,32 +22,18 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strconv"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/mazzy89/containervmm/pkg/api"
 )
 
-func CreateDisks(guest *api.Guest, disks [][]string) error {
-	for i := range disks {
-		disk := disks[i]
+func CreateDisks(guest *api.Guest) error {
+	for i := range guest.Disks {
+		gd := guest.Disks[i]
 
-		id, size := disk[0], disk[1]
-		isRoot, err := strconv.ParseBool(disk[2])
-
-		if err != nil {
-			return err
-		}
-
-		gd := api.Disk{
-			ID:     id,
-			Size:   size,
-			IsRoot: isRoot,
-		}
-
+		// set ID
 		gd.File = gd.ID + ".img"
-
 		// set XFS statically
 		gd.Filesystem = api.XFS
 
@@ -58,8 +44,6 @@ func CreateDisks(guest *api.Guest, disks [][]string) error {
 		if err := runMkfs(gd.Filesystem, gd.File); err != nil {
 			return fmt.Errorf("failed to exec mkfs command: %v", err)
 		}
-
-		guest.Disks = append(guest.Disks, gd)
 
 		log.Infof("Created block disk %s with size %s", gd.ID, gd.Size)
 	}
