@@ -18,12 +18,12 @@ limitations under the License.
 package main
 
 import (
-	"github.com/mazzy89/containervmm/containervmm/cmd"
+	"github.com/mazzy89/containervmm/cmd/root"
 	log "github.com/sirupsen/logrus"
 )
 
 func main() {
-	if err := cmd.Run().Execute(); err != nil {
+	if err := root.Execute(); err != nil {
 		log.Fatal(err)
 	}
 }

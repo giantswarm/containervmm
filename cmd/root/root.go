@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package cmd
+package root
 
 import (
 	"fmt"
@@ -55,7 +55,7 @@ type runOptions struct {
 
 var opts runOptions
 
-func Run() *cobra.Command {
+func Execute() error {
 	// rootCmd represents the base command when called without any subcommands
 	var rootCmd = &cobra.Command{
 		Use:   targetName,
@@ -156,7 +156,7 @@ func Run() *cobra.Command {
 
 	flags.BoolVarP(&opts.sanityChecks, "sanity-checks", "", true, "run sanity checks (GPG verification of images)")
 
-	return rootCmd
+	return rootCmd.Execute()
 }
 
 func init() {
