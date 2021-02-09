@@ -30,6 +30,7 @@ import (
 	"github.com/mazzy89/containervmm/pkg/distro"
 	"github.com/mazzy89/containervmm/pkg/hypervisor"
 	"github.com/mazzy89/containervmm/pkg/network"
+	"github.com/mazzy89/containervmm/pkg/util"
 )
 
 const (
@@ -40,9 +41,10 @@ const (
 	cfgGuestAdditionalDisks = "guest-additional-disks"
 	cfgGuestHostVolumes     = "guest-host-volumes"
 
-	cfgFlatcarChannel  = "flatcar-channel"
-	cfgFlatcarVersion  = "flatcar-version"
-	cfgFlatcarIgnition = "flatcar-ignition"
+	cfgFlatcarChannel      = "flatcar-channel"
+	cfgFlatcarVersion      = "flatcar-version"
+	cfgFlatcarIgnition     = "flatcar-ignition"
+	cfgFlatcarIgnitionPath = "flatcar-ignition-dir"
 
 	cfgDebug        = "debug"
 	cfgSanityChecks = "sanity-checks"
@@ -92,7 +94,18 @@ var rootCmd = &cobra.Command{
 		guest.OS.Initrd = initrd
 
 		// set Ignition Config
-		guest.OS.IgnitionConfig = c.GetString(cfgFlatcarIgnition)
+		// this expect the path where the plain-text Ignition file is stored
+		b64Ignition := c.GetString(cfgFlatcarIgnition)
+		dirIgnition := c.GetString(cfgFlatcarIgnitionPath)
+
+		if b64Ignition != "" {
+			absIgnitionPath, err := util.DecodeBase64ToFile(b64Ignition, dirIgnition)
+			if err != nil {
+				return fmt.Errorf("an error occured during the decoding of Ignition config")
+			}
+
+			guest.OS.IgnitionConfig = absIgnitionPath
+		}
 
 		// Setup networking inside of the container, return the available interfaces
 		dhcpIfaces, err := network.SetupInterfaces(&guest)
@@ -166,7 +179,8 @@ func init() {
 
 	configStringVar(flags, cfgFlatcarChannel, "stable", "flatcar channel (i.e. stable, beta, alpha, edge)")
 	configStringVar(flags, cfgFlatcarVersion, "", "flatcar version")
-	configStringVar(flags, cfgFlatcarIgnition, "", "path of the Ignition config")
+	configStringVar(flags, cfgFlatcarIgnition, "", "base64-encoded Ignition Config")
+	configStringVar(flags, cfgFlatcarIgnitionPath, "/", "dir path of the Ignition config")
 
 	configBoolVar(flags, cfgSanityChecks, true, "run sanity checks (GPG verification of images)")
 	configBoolVar(flags, cfgDebug, false, "enable debug")

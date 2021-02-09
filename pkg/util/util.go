@@ -18,10 +18,12 @@ limitations under the License.
 package util
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 
 	bar "github.com/schollz/progressbar/v3"
@@ -89,4 +91,25 @@ func verifyGPG(signed, signature io.Reader, pubKey string) error {
 	}
 
 	return nil
+}
+
+func DecodeBase64ToFile(encoded, outputPath string) (string, error) {
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return "", fmt.Errorf("failed to decode base64 file")
+	}
+
+	fname := path.Join(outputPath, "ignition.json")
+
+	file, err := os.Create(fname)
+	if err != nil {
+		return "", fmt.Errorf("failed to open file: %v", err)
+	}
+	defer file.Close()
+
+	if _, err = file.WriteString(string(decoded)); err != nil {
+		return "", err
+	}
+
+	return fname, nil
 }
