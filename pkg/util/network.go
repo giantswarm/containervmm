@@ -22,11 +22,10 @@ import (
 	"net"
 )
 
-func GenerateRandomPrivateMacAddr() (string, error) {
+func GenerateRandomPrivateMacAddr() (net.HardwareAddr, error) {
 	buf := make([]byte, 6)
-	_, err := cryptoRand.Read(buf)
-	if err != nil {
-		return "", err
+	if _, err := cryptoRand.Read(buf); err != nil {
+		return nil, err
 	}
 
 	// Set the local bit for local addresses
@@ -35,5 +34,6 @@ func GenerateRandomPrivateMacAddr() (string, error) {
 	buf[0] = (buf[0] | 2) & 0xfe
 
 	hardAddr := net.HardwareAddr(buf)
-	return hardAddr.String(), nil
+
+	return hardAddr, nil
 }

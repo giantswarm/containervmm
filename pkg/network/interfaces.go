@@ -194,12 +194,7 @@ func bridge(netHandle *netlink.Handle, iface *net.Interface) (*DHCPInterface, er
 		return nil, fmt.Errorf("failed to generate MAC addresses: %v", err)
 	}
 
-	hardAddr, err := net.ParseMAC(randomMacAddr)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := netHandle.LinkSetHardwareAddr(eth, hardAddr); err != nil {
+	if err := netHandle.LinkSetHardwareAddr(eth, randomMacAddr); err != nil {
 		return nil, fmt.Errorf("failed to set MAC address %s for eth interface %s: %s",
 			randomMacAddr, eth.Attrs().Name, err)
 	}

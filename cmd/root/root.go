@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/mazzy89/containervmm/pkg/api"
@@ -31,11 +32,7 @@ import (
 	"github.com/mazzy89/containervmm/pkg/network"
 )
 
-const targetName = "containervmm"
-
-var c = viper.New()
-
-var (
+const (
 	cfgGuestName            = "guest-name"
 	cfgGuestMemory          = "guest-memory"
 	cfgGuestCPUs            = "guest-cpus"
@@ -49,7 +46,26 @@ var (
 
 	cfgDebug        = "debug"
 	cfgSanityChecks = "sanity-checks"
+
+	targetName = "containervmm"
 )
+
+var c = viper.New()
+
+func configBoolVar(flags *pflag.FlagSet, key string, defaultValue bool, description string) {
+	flags.Bool(key, defaultValue, description)
+	_ = c.BindPFlag(key, flags.Lookup(key))
+}
+
+func configStringVar(flags *pflag.FlagSet, key, defaultValue, description string) {
+	flags.String(key, defaultValue, description)
+	_ = c.BindPFlag(key, flags.Lookup(key))
+}
+
+func configStringSlice(flags *pflag.FlagSet, key string, defaultValue []string, description string) {
+	flags.StringSlice(key, defaultValue, description)
+	_ = c.BindPFlag(key, flags.Lookup(key))
+}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -140,34 +156,20 @@ func init() {
 
 	flags := rootCmd.PersistentFlags()
 
-	flags.Bool(cfgDebug, false, "enable debug")
-	_ = c.BindPFlag(cfgDebug, flags.Lookup(cfgDebug))
+	configStringVar(flags, cfgGuestName, "flatcar_production_qemu", "guest name")
+	configStringVar(flags, cfgGuestMemory, "1024M", "guest memory")
+	configStringVar(flags, cfgGuestCPUs, "1", "guest cpus")
+	configStringVar(flags, cfgGuestRootDiskSize, "20G", "guest root disk size")
 
-	flags.String(cfgGuestName, "flatcar_production_qemu", "guest name")
-	_ = c.BindPFlag(cfgGuestName, flags.Lookup(cfgGuestName))
+	configStringSlice(flags, cfgGuestAdditionalDisks, []string{}, "guest additional disk to mount (i.e. \"dockerfs:20GB\")")
+	configStringSlice(flags, cfgGuestHostVolumes, []string{}, "guest host volume (i.e. \"datashare:/usr/data\")")
 
-	flags.String(cfgGuestMemory, "1024M", "guest memory")
-	_ = c.BindPFlag(cfgGuestMemory, flags.Lookup(cfgGuestMemory))
+	configStringVar(flags, cfgFlatcarChannel, "stable", "flatcar channel (i.e. stable, beta, alpha, edge)")
+	configStringVar(flags, cfgFlatcarVersion, "", "flatcar version")
+	configStringVar(flags, cfgFlatcarIgnition, "", "path of the Ignition config")
 
-	flags.String(cfgGuestCPUs, "1", "guest cpus")
-	_ = c.BindPFlag(cfgGuestCPUs, flags.Lookup(cfgGuestCPUs))
-
-	flags.String(cfgGuestRootDiskSize, "20G", "guest root disk size")
-	_ = c.BindPFlag(cfgGuestRootDiskSize, flags.Lookup(cfgGuestRootDiskSize))
-
-	flags.StringSlice(cfgGuestAdditionalDisks, []string{}, "guest additional disk to mount (i.e. \"dockerfs:20GB\")")
-	_ = c.BindPFlag(cfgGuestAdditionalDisks, rootCmd.PersistentFlags().Lookup(cfgGuestAdditionalDisks))
-	flags.StringSlice(cfgGuestHostVolumes, []string{}, "guest host volume (i.e. \"datashare:/usr/data\")")
-	_ = c.BindPFlag(cfgGuestHostVolumes, flags.Lookup(cfgGuestHostVolumes))
-
-	flags.String(cfgFlatcarChannel, "stable", "flatcar channel (i.e. stable, beta, alpha, edge)")
-	_ = c.BindPFlag(cfgFlatcarChannel, flags.Lookup(cfgFlatcarChannel))
-	flags.String(cfgFlatcarVersion, "", "flatcar version")
-	_ = c.BindPFlag(cfgFlatcarVersion, flags.Lookup(cfgFlatcarVersion))
-	flags.String(cfgFlatcarIgnition, "", "path of the Ignition config")
-	_ = c.BindPFlag(cfgFlatcarIgnition, flags.Lookup(cfgFlatcarIgnition))
-
-	flags.Bool(cfgSanityChecks, true, "run sanity checks (GPG verification of images)")
+	configBoolVar(flags, cfgSanityChecks, true, "run sanity checks (GPG verification of images)")
+	configBoolVar(flags, cfgDebug, false, "enable debug")
 }
 
 func initConfig() {

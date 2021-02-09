@@ -22,12 +22,11 @@ import (
 	"net"
 	"time"
 
-	"github.com/vishvananda/netlink"
-
 	dhcp "github.com/krolaw/dhcp4"
 	"github.com/krolaw/dhcp4/conn"
 	"github.com/miekg/dns"
 	log "github.com/sirupsen/logrus"
+	"github.com/vishvananda/netlink"
 
 	"github.com/mazzy89/containervmm/pkg/api"
 )

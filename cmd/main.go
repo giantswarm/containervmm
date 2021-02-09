@@ -18,8 +18,9 @@ limitations under the License.
 package main
 
 import (
-	"github.com/mazzy89/containervmm/cmd/root"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/mazzy89/containervmm/cmd/root"
 )
 
 func main() {
