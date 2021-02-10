@@ -43,11 +43,12 @@ type DHCPInterface struct {
 	Hostname   string
 	MACFilter  string
 	dnsServers []byte
+	ntpServers []byte
 }
 
-func StartDHCPServers(guest api.Guest, dhcpIfaces []DHCPInterface) error {
+func StartDHCPServers(guest api.Guest, dhcpIfaces []DHCPInterface, dnsServers []string, ntpServers []string) error {
 	// Fetch the DNS servers given to the container
-	clientConfig, err := dns.ClientConfigFromFile("/etc/resolv.conf")
+	containerConfig, err := dns.ClientConfigFromFile("/etc/resolv.conf")
 	if err != nil {
 		return fmt.Errorf("failed to get DNS configuration: %v", err)
 	}
@@ -58,8 +59,17 @@ func StartDHCPServers(guest api.Guest, dhcpIfaces []DHCPInterface) error {
 		// Set the VM hostname to the VM ID
 		dhcpIface.Hostname = guest.Name
 
-		// Add the DNS servers from the container
-		dhcpIface.SetDNSServers(clientConfig.Servers)
+		if len(dnsServers) > 0 {
+			// add the DNS servers from the user input
+			dhcpIface.SetDNSServers(dnsServers)
+		} else {
+			// Add the DNS servers from the container
+			dhcpIface.SetDNSServers(containerConfig.Servers)
+		}
+
+		if len(ntpServers) > 0 {
+			dhcpIface.SetNTPServers(ntpServers)
+		}
 
 		go func() {
 			log.Infof("Starting DHCP server for interface %q (%s)\n", dhcpIface.Bridge, dhcpIface.VMIPNet.IP)
@@ -95,10 +105,12 @@ func (i *DHCPInterface) ServeDHCP(p dhcp.Packet, msgType dhcp.MessageType, optio
 				dhcp.OptionHostName:         []byte(i.Hostname),
 			}
 
-			netRoutes := formClasslessRoutes(&i.Routes)
-
-			if netRoutes != nil {
+			if netRoutes := formClasslessRoutes(&i.Routes); netRoutes != nil {
 				opts[dhcp.OptionClasslessRouteFormat] = netRoutes
+			}
+
+			if i.ntpServers != nil {
+				opts[dhcp.OptionNetworkTimeProtocolServers] = i.ntpServers
 			}
 
 			optSlice := opts.SelectOrderOrAll(options[dhcp.OptionParameterRequestList])
@@ -124,6 +136,13 @@ func (i *DHCPInterface) StartBlockingServer() error {
 func (i *DHCPInterface) SetDNSServers(dns []string) {
 	for _, server := range dns {
 		i.dnsServers = append(i.dnsServers, []byte(net.ParseIP(server).To4())...)
+	}
+}
+
+// Parse the NTP servers for the DHCP server
+func (i *DHCPInterface) SetNTPServers(ntp []string) {
+	for _, server := range ntp {
+		i.ntpServers = append(i.ntpServers, []byte(net.ParseIP(server).To4())...)
 	}
 }
 

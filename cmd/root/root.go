@@ -40,6 +40,8 @@ const (
 	cfgGuestRootDiskSize    = "guest-root-disk-size"
 	cfgGuestAdditionalDisks = "guest-additional-disks"
 	cfgGuestHostVolumes     = "guest-host-volumes"
+	cfgGuestDNSServers      = "guest-dns-servers"
+	cfgGuestNTPServers      = "guest-ntp-servers"
 
 	cfgFlatcarChannel      = "flatcar-channel"
 	cfgFlatcarVersion      = "flatcar-version"
@@ -114,9 +116,12 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Serve DHCP requests for those interfaces
-		// This function returns the available IP addresses that are being
+		// The function returns the available IP addresses that are being
 		// served over DHCP now
-		if err = network.StartDHCPServers(guest, dhcpIfaces); err != nil {
+		dnsServers := c.GetStringSlice(cfgGuestDNSServers)
+		ntpServers := c.GetStringSlice(cfgGuestNTPServers)
+
+		if err = network.StartDHCPServers(guest, dhcpIfaces, dnsServers, ntpServers); err != nil {
 			return fmt.Errorf("an error occured during the start of the DHCP servers: %v", err)
 		}
 
@@ -176,8 +181,10 @@ func init() {
 
 	configStringSlice(flags, cfgGuestAdditionalDisks, []string{}, "guest additional disk to mount (i.e. \"dockerfs:20GB\")")
 	configStringSlice(flags, cfgGuestHostVolumes, []string{}, "guest host volume (i.e. \"datashare:/usr/data\")")
+	configStringSlice(flags, cfgGuestDNSServers, []string{}, "guest DNS Servers. If left empty, the DNS servers given are the one of the container")
+	configStringSlice(flags, cfgGuestNTPServers, []string{}, "guest NTP Servers. If left empty, the NTP servers set are the default one from the distro")
 
-	configStringVar(flags, cfgFlatcarChannel, "stable", "flatcar channel (i.e. stable, beta, alpha, edge)")
+	configStringVar(flags, cfgFlatcarChannel, "stable", "flatcar channel (i.e. stable, beta, alpha)")
 	configStringVar(flags, cfgFlatcarVersion, "", "flatcar version")
 	configStringVar(flags, cfgFlatcarIgnition, "", "base64-encoded Ignition Config")
 	configStringVar(flags, cfgFlatcarIgnitionPath, "/", "dir path of the Ignition config")

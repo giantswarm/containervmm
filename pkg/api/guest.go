@@ -38,7 +38,6 @@ type NetworkInterface struct {
 	InterfaceIP *net.IP
 	Routes      []netlink.Route
 	MacAddr     string
-	DNSServers  []string
 	TAP         string
 }
 
