@@ -9,6 +9,7 @@ Run Virtual Machines and manage their lifecycle inside a Docker container.
 
 ## Features
 
+- Configure either via CLI flags or environment variables
 - Ability to configure VM resources (CPUs, memory, disk size)
 - Mount additional disks
 - Mount host volumes
