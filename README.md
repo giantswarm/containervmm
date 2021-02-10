@@ -9,7 +9,7 @@ Run Virtual Machines and manage their lifecycle inside a Docker container.
 
 ## Features
 
-- Ability to configure VM resources (CPUs, Memory, Disk)
+- Ability to configure VM resources (CPUs, memory, disk size)
 - Mount additional disks
 - Mount host volumes
 - OS network configuration automatically handled by DHCP
@@ -47,12 +47,12 @@ Flags:
 
 ## Hypervisor supported
 
-* QEMU
-* Firecracker (Coming)
+* QEMU - Quick EMUlator
+* AWS Firecracker (Coming)
 
 ## OS Supported
 
-* Flatcar Linux
+-  Flatcar Container Linux by Kinvolk
 
 ## Installation
 
