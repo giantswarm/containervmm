@@ -70,6 +70,7 @@ func VerifyFile(file, verifyKey string) error {
 
 	signatureName := file + ".sig"
 	signature, err := os.Open(signatureName)
+
 	if err != nil {
 		return err
 	}

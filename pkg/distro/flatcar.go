@@ -285,7 +285,7 @@ ImM5rbOC6ZJdwLUTAg==
 func DownloadImages(channel, version string, sanityChecks bool) (string, string, error) {
 	vmlinuzExistsLocal := util.FileExists(vmlinuz)
 	if !vmlinuzExistsLocal {
-		var vmlinuzURL = assetURL(channel, version, vmlinuz)
+		vmlinuzURL := assetURL(channel, version, vmlinuz)
 
 		log.Infof("Downloading %s to %s", vmlinuzURL, vmlinuz)
 
@@ -298,7 +298,7 @@ func DownloadImages(channel, version string, sanityChecks bool) (string, string,
 
 	initrdExistsLocal := util.FileExists(initrd)
 	if !initrdExistsLocal {
-		var initrdURL = assetURL(channel, version, initrd)
+		initrdURL := assetURL(channel, version, initrd)
 
 		log.Infof("Downloading %s to %s", initrdURL, initrd)
 
@@ -312,7 +312,7 @@ func DownloadImages(channel, version string, sanityChecks bool) (string, string,
 	// download images and verify them only when they are downloaded from remote
 	// we do trust our filesystem so no need to verify in case are served locally
 	if sanityChecks && (!vmlinuzExistsLocal || !initrdExistsLocal) {
-		if err := downloadSignatures(channel, version, vmlinuz, initrd); err != nil {
+		if err := downloadSignatures(channel, version); err != nil {
 			return "", "", fmt.Errorf("failed to download signatures: %v", err)
 		}
 
@@ -326,7 +326,7 @@ func DownloadImages(channel, version string, sanityChecks bool) (string, string,
 	return vmlinuz, initrd, nil
 }
 
-func downloadSignatures(channel, version, vmlinuz, initrd string) error {
+func downloadSignatures(channel, version string) error {
 	vmlinuzSignatureURL := assetURL(channel, version, vmlinuzSignature)
 
 	log.Infof("Downloading %s to %s", vmlinuzSignatureURL, vmlinuzSignature)
@@ -335,7 +335,7 @@ func downloadSignatures(channel, version, vmlinuz, initrd string) error {
 		return fmt.Errorf("failed to download file from %s: %w", vmlinuzSignatureURL, err)
 	}
 
-	var initrdSignatureURL = assetURL(channel, version, initrdSignature)
+	initrdSignatureURL := assetURL(channel, version, initrdSignature)
 
 	log.Infof("Downloading %s to %s", initrdSignatureURL, initrdSignature)
 

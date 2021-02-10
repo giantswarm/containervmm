@@ -50,9 +50,9 @@ Flags:
 * QEMU - Quick EMUlator
 * AWS Firecracker (Coming)
 
-## OS Supported
+## OS/Arch Supported
 
--  Flatcar Container Linux by Kinvolk
+- Flatcar Container Linux by Kinvolk (`amd64`)
 
 ## Installation
 
