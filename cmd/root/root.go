@@ -126,8 +126,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		// create rootfs and other additional volumes
-		gDisks := guest.Disks
-		gDisks = append(gDisks, api.Disk{
+		guest.Disks = append(guest.Disks, api.Disk{
 			ID:     "rootfs",
 			Size:   c.GetString(cfgGuestRootDiskSize),
 			IsRoot: true,
@@ -136,7 +135,7 @@ var rootCmd = &cobra.Command{
 		for _, gd := range c.GetStringSlice(cfgGuestAdditionalDisks) {
 			id, size := parseStringSliceFlag(gd)
 
-			gDisks = append(gDisks, api.Disk{
+			guest.Disks = append(guest.Disks, api.Disk{
 				ID:     id,
 				Size:   size,
 				IsRoot: false,
