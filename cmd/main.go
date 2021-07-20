@@ -20,7 +20,7 @@ package main
 import (
 	log "github.com/sirupsen/logrus"
 
-	"github.com/mazzy89/containervmm/cmd/root"
+	"github.com/giantswarm/containervmm/cmd/root"
 )
 
 func main() {

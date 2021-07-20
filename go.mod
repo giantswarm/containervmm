@@ -1,4 +1,4 @@
-module github.com/mazzy89/containervmm
+module github.com/giantswarm/containervmm
 
 go 1.15
 

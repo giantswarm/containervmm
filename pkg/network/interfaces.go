@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/mazzy89/containervmm/pkg/api"
+	"github.com/giantswarm/containervmm/pkg/api"
 
-	"github.com/mazzy89/containervmm/pkg/util"
+	"github.com/giantswarm/containervmm/pkg/util"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"

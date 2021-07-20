@@ -25,7 +25,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/mazzy89/containervmm/pkg/api"
+	"github.com/giantswarm/containervmm/pkg/api"
 )
 
 func CreateDisks(guest *api.Guest) error {

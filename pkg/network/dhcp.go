@@ -28,7 +28,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink"
 
-	"github.com/mazzy89/containervmm/pkg/api"
+	"github.com/giantswarm/containervmm/pkg/api"
 )
 
 var leaseDuration, _ = time.ParseDuration("4294967295s") // Infinite lease time
