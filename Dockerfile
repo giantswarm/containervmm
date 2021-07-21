@@ -12,8 +12,7 @@ RUN go mod download
 COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./bin/containervmm ./cmd/main.go \
-    && chmod +x ./bin/containervmm \
-    && cp ./scripts/qemu-shutdown.sh ./bin
+    && chmod +x ./bin/containervmm
 
 FROM fedora:34
 
