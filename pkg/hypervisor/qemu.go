@@ -505,15 +505,14 @@ func checkDeferrer(deferrer api.ShutdownDeferrer) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			panic(err)
-		}
-	}(response.Body)
-
+	
 	body, err := io.ReadAll(response.Body)
+
+	closeErr := response.Body.Close()
+	if err == nil {
+		err = closeErr
+	}
+
 	return string(body) == "true", err
 }
 
