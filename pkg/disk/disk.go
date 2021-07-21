@@ -46,6 +46,8 @@ func CreateDisks(guest *api.Guest) error {
 		}
 
 		log.Infof("Created block disk %s with size %s", gd.ID, gd.Size)
+
+		guest.Disks[i] = gd
 	}
 
 	return nil
