@@ -212,6 +212,9 @@ func init() {
 	configStringVar(flags, cfgFlatcarIgnition, "", "optional content of base64-encoded ignition")
 	configStringVar(flags, cfgFlatcarIgnitionFile, "", "optional path to file containing ignition json")
 
+	configStringVar(flags, cfgShutdownDeferrerURL, "", "if provided, the powerdown command after a SIGTERM signal will be deferred until a GET request to this URL doesn't return \"true\"")
+	configStringVar(flags, cfgShutdownDeferrerPollInterval, "5s", "time between consecutive shutdown deferrer checks")
+
 	configBoolVar(flags, cfgSanityChecks, true, "run sanity checks (GPG verification of images)")
 	configBoolVar(flags, cfgDebug, false, "enable debug")
 }

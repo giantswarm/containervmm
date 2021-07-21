@@ -505,7 +505,7 @@ func checkDeferrer(deferrer api.ShutdownDeferrer) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	
+
 	body, err := io.ReadAll(response.Body)
 
 	closeErr := response.Body.Close()
