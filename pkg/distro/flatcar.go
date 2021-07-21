@@ -20,7 +20,9 @@ package distro
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"path"
+	"path/filepath"
 
 	log "github.com/sirupsen/logrus"
 
@@ -32,12 +34,10 @@ const (
 	archAMD64 = "amd64-usr"
 
 	// kernel
-	vmlinuz          = "flatcar_production_pxe.vmlinuz"
-	vmlinuzSignature = vmlinuz + ".sig"
+	vmlinuz = "flatcar_production_pxe.vmlinuz"
 
 	// initrd
-	initrd          = "flatcar_production_pxe_image.cpio.gz"
-	initrdSignature = initrd + ".sig"
+	initrd = "flatcar_production_pxe_image.cpio.gz"
 
 	// Flatcar image signing key:
 	// $ gpg2 --list-keys --list-options show-unusable-subkeys \
@@ -283,64 +283,73 @@ ImM5rbOC6ZJdwLUTAg==
 
 // Pull Flatcar images from the official Kinvolk repository, optionally verify files and return the image names
 func DownloadImages(channel, version string, sanityChecks bool) (string, string, error) {
-	vmlinuzExistsLocal := util.FileExists(vmlinuz)
+	imageDirectory := filepath.Join("/var/lib/containervmm/images", channel, version)
+	if err := os.MkdirAll(imageDirectory, 0755); err != nil {
+		return "", "", fmt.Errorf("failed to create directory %s: %w", imageDirectory, err)
+	}
+
+	vmlinuzPath := filepath.Join(imageDirectory, vmlinuz)
+	vmlinuzExistsLocal := util.FileExists(vmlinuzPath)
 	if !vmlinuzExistsLocal {
 		vmlinuzURL := assetURL(channel, version, vmlinuz)
 
-		log.Infof("Downloading %s to %s", vmlinuzURL, vmlinuz)
+		log.Infof("Downloading %s to %s", vmlinuzURL, vmlinuzPath)
 
-		if err := util.DownloadFile(vmlinuz, vmlinuzURL); err != nil {
+		if err := util.DownloadFile(vmlinuzPath, vmlinuzURL); err != nil {
 			return "", "", fmt.Errorf("failed to download file from %s: %w", vmlinuzURL, err)
 		}
 	} else {
-		log.Infof("Image %s found in the local filesystem.", vmlinuz)
+		log.Infof("Image %s found in the local filesystem.", vmlinuzPath)
 	}
 
-	initrdExistsLocal := util.FileExists(initrd)
+	initrdPath := filepath.Join(imageDirectory, initrd)
+	initrdExistsLocal := util.FileExists(initrdPath)
 	if !initrdExistsLocal {
 		initrdURL := assetURL(channel, version, initrd)
 
-		log.Infof("Downloading %s to %s", initrdURL, initrd)
+		log.Infof("Downloading %s to %s", initrdURL, initrdPath)
 
-		if err := util.DownloadFile(initrd, initrdURL); err != nil {
+		if err := util.DownloadFile(initrdPath, initrdURL); err != nil {
 			return "", "", fmt.Errorf("failed to download file from %s: %w", initrdURL, err)
 		}
 	} else {
-		log.Infof("Image %s found in the local filesystem", initrd)
+		log.Infof("Image %s found in the local filesystem", initrdPath)
 	}
 
 	// download images and verify them only when they are downloaded from remote
 	// we do trust our filesystem so no need to verify in case are served locally
 	if sanityChecks && (!vmlinuzExistsLocal || !initrdExistsLocal) {
-		if err := downloadSignatures(channel, version); err != nil {
+		if err := downloadSignatures(imageDirectory, channel, version); err != nil {
 			return "", "", fmt.Errorf("failed to download signatures: %v", err)
 		}
 
-		if err := verifyImages(vmlinuz, initrd); err != nil {
+		if err := verifyImages(vmlinuzPath, initrdPath); err != nil {
 			return "", "", fmt.Errorf("failed to verify Flatcar images: %w", err)
 		}
 	} else {
 		log.Warningf("Skipping sanity checks.")
 	}
 
-	return vmlinuz, initrd, nil
+	return vmlinuzPath, initrdPath, nil
 }
 
-func downloadSignatures(channel, version string) error {
-	vmlinuzSignatureURL := assetURL(channel, version, vmlinuzSignature)
+func downloadSignatures(imageDirectory, channel, version string) error {
+	vmlinuzSignaturePath := filepath.Join(imageDirectory, vmlinuz+".sig")
+	vmlinuzSignatureURL := assetURL(channel, version, vmlinuz+".sig")
 
-	log.Infof("Downloading %s to %s", vmlinuzSignatureURL, vmlinuzSignature)
+	log.Infof("Downloading %s to %s", vmlinuzSignatureURL, vmlinuzSignaturePath)
 
-	if err := util.DownloadFile(vmlinuzSignature, vmlinuzSignatureURL); err != nil {
+	if err := util.DownloadFile(vmlinuzSignaturePath, vmlinuzSignatureURL); err != nil {
 		return fmt.Errorf("failed to download file from %s: %w", vmlinuzSignatureURL, err)
 	}
 
-	initrdSignatureURL := assetURL(channel, version, initrdSignature)
+	initrdSignaturePath := filepath.Join(imageDirectory, initrd+".sig")
+	initrdSignatureURL := assetURL(channel, version, initrd+".sig")
 
-	log.Infof("Downloading %s to %s", initrdSignatureURL, initrdSignature)
+	log.Infof("Downloading %s to %s", initrdSignatureURL, initrdSignaturePath)
 
-	if err := util.DownloadFile(initrdSignature, initrdSignatureURL); err != nil {
-		return fmt.Errorf("failed to download file from %s: %w", initrdSignature, err)
+	if err := util.DownloadFile(initrdSignaturePath, initrdSignatureURL); err != nil {
+		return fmt.Errorf("failed to download file from %s: %w", initrdSignaturePath, err)
 	}
 
 	return nil

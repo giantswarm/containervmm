@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	log "github.com/sirupsen/logrus"
 
@@ -33,7 +34,7 @@ func CreateDisks(guest *api.Guest) error {
 		gd := guest.Disks[i]
 
 		// set ID
-		gd.File = gd.ID + ".img"
+		gd.File = filepath.Join("/var/lib/containervmm/disks", gd.ID+".img")
 		// set XFS statically
 		gd.Filesystem = api.XFS
 
