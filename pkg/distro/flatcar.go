@@ -34,10 +34,12 @@ const (
 	archAMD64 = "amd64-usr"
 
 	// kernel
-	vmlinuz = "flatcar_production_pxe.vmlinuz"
+	vmlinuz          = "flatcar_production_pxe.vmlinuz"
+	vmlinuzSignature = vmlinuz + ".sig"
 
 	// initrd
-	initrd = "flatcar_production_pxe_image.cpio.gz"
+	initrd          = "flatcar_production_pxe_image.cpio.gz"
+	initrdSignature = initrd + ".sig"
 
 	// Flatcar image signing key:
 	// $ gpg2 --list-keys --list-options show-unusable-subkeys \
@@ -334,7 +336,7 @@ func DownloadImages(channel, version string, sanityChecks bool) (string, string,
 }
 
 func downloadSignatures(imageDirectory, channel, version string) error {
-	vmlinuzSignaturePath := filepath.Join(imageDirectory, vmlinuz+".sig")
+	vmlinuzSignaturePath := filepath.Join(imageDirectory, vmlinuzSignature)
 	vmlinuzSignatureURL := assetURL(channel, version, vmlinuz+".sig")
 
 	log.Infof("Downloading %s to %s", vmlinuzSignatureURL, vmlinuzSignaturePath)
@@ -344,7 +346,7 @@ func downloadSignatures(imageDirectory, channel, version string) error {
 	}
 
 	initrdSignaturePath := filepath.Join(imageDirectory, initrd+".sig")
-	initrdSignatureURL := assetURL(channel, version, initrd+".sig")
+	initrdSignatureURL := assetURL(channel, version, initrdSignature)
 
 	log.Infof("Downloading %s to %s", initrdSignatureURL, initrdSignaturePath)
 
