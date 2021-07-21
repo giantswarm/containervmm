@@ -73,16 +73,24 @@ func runMkfs(filesystem api.FsType, block string) error {
 }
 
 func createDiskFile(filename string, size string) error {
-	if _, err := os.OpenFile(filename, os.O_CREATE, 0644); err != nil {
-		return fmt.Errorf("failed to create file %s: %v", filename, err)
-	}
-
 	sizeVal, err := formatSize(size)
 	if err != nil {
 		return fmt.Errorf("failed to format the disk size: %v", err)
 	}
 
-	if err := os.Truncate(filename, sizeVal); err != nil {
+	file, err := os.OpenFile(filename, os.O_RDWR|os.O_TRUNC|os.O_CREATE, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to create file %s: %v", filename, err)
+	}
+
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(file)
+
+	if err := file.Truncate(sizeVal); err != nil {
 		return fmt.Errorf("failed to trucate the file %s: %v", filename, err)
 	}
 
