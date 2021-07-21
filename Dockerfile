@@ -1,4 +1,4 @@
-FROM golang:1.15-alpine AS build
+FROM golang:1.16-alpine AS build
 
 ENV GO111MODULE=on
 
@@ -14,7 +14,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./bin/containervmm ./cmd/main.go \
     && chmod +x ./bin/containervmm
 
-FROM fedora:33
+FROM fedora:34
 
 RUN dnf -y update \
     && dnf -y install qemu-system-x86 xfsprogs \
