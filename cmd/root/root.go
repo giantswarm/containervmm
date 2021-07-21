@@ -28,20 +28,11 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
-<<<<<<< Updated upstream
 	"github.com/giantswarm/containervmm/pkg/api"
 	"github.com/giantswarm/containervmm/pkg/disk"
 	"github.com/giantswarm/containervmm/pkg/distro"
 	"github.com/giantswarm/containervmm/pkg/hypervisor"
 	"github.com/giantswarm/containervmm/pkg/network"
-	"github.com/giantswarm/containervmm/pkg/util"
-=======
-	"github.com/mazzy89/containervmm/pkg/api"
-	"github.com/mazzy89/containervmm/pkg/disk"
-	"github.com/mazzy89/containervmm/pkg/distro"
-	"github.com/mazzy89/containervmm/pkg/hypervisor"
-	"github.com/mazzy89/containervmm/pkg/network"
->>>>>>> Stashed changes
 )
 
 const (
