@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -111,7 +112,7 @@ func ExecuteQEMU(guest api.Guest) error {
 		return fmt.Errorf("failed to run QMP commmand: %v", err)
 	}
 
-	installSignalHandlers(ctx, q)
+	installSignalHandlers(ctx, guest.ShutdownDeferrer, q)
 
 	// disconnectedCh is closed when the VM exits. This line blocks until this
 	// event occurs.
@@ -454,7 +455,7 @@ func watchConsole() error {
 	return nil
 }
 
-func installSignalHandlers(ctx context.Context, q *qemu.QMP) {
+func installSignalHandlers(ctx context.Context, shutdownDeferrer api.ShutdownDeferrer, q *qemu.QMP) {
 	go func() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
@@ -462,7 +463,16 @@ func installSignalHandlers(ctx context.Context, q *qemu.QMP) {
 		for {
 			switch s := <-c; {
 			case s == syscall.SIGTERM || s == os.Interrupt:
-				log.Infof("Caught SIGTERM, requesting clean shutdown")
+				if shutdownDeferrer.Enabled {
+					log.Infof("Caught SIGTERM, waiting for shutdown deferrer before sending powerdown command")
+					if err := waitForDeferrer(shutdownDeferrer); err != nil {
+						log.Errorf("Error occurred while waiting for shutdown deferrer: %s", err.Error())
+					} else {
+						log.Infof("Shutdown deferrer complete, continuing with powerdown")
+					}
+				} else {
+					log.Infof("Caught SIGTERM, requesting clean shutdown")
+				}
 
 				ctxTimeout, cancel := context.WithTimeout(ctx, powerdownTimeout)
 				err := q.ExecuteSystemPowerdown(ctxTimeout)
@@ -488,4 +498,35 @@ func installSignalHandlers(ctx context.Context, q *qemu.QMP) {
 			}
 		}
 	}()
+}
+
+func checkDeferrer(deferrer api.ShutdownDeferrer) (bool, error) {
+	response, err := http.Get(deferrer.URL)
+	if err != nil {
+		return false, err
+	}
+
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(response.Body)
+
+	body, err := io.ReadAll(response.Body)
+	return string(body) == "true", err
+}
+
+func waitForDeferrer(deferrer api.ShutdownDeferrer) error {
+	for {
+		if shouldDefer, err := checkDeferrer(deferrer); err != nil {
+			return err
+		} else if !shouldDefer {
+			break
+		}
+
+		time.Sleep(deferrer.PollInterval)
+	}
+
+	return nil
 }

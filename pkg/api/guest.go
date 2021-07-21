@@ -2,6 +2,7 @@ package api
 
 import (
 	"net"
+	"time"
 
 	"github.com/vishvananda/netlink"
 )
@@ -22,6 +23,14 @@ type Guest struct {
 
 	// DHCP Interfaces
 	NICs []NetworkInterface
+
+	ShutdownDeferrer ShutdownDeferrer
+}
+
+type ShutdownDeferrer struct {
+	Enabled      bool
+	URL          string
+	PollInterval time.Duration
 }
 
 // OS describe sthe configuration of the OS

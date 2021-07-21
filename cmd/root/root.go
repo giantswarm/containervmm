@@ -23,6 +23,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -49,6 +50,9 @@ const (
 	cfgFlatcarVersion      = "flatcar-version"
 	cfgFlatcarIgnition     = "flatcar-ignition"
 	cfgFlatcarIgnitionFile = "flatcar-ignition-file"
+
+	cfgShutdownDeferrerURL          = "shutdown-deferrer-url"
+	cfgShutdownDeferrerPollInterval = "shutdown-deferrer-poll-interval"
 
 	cfgDebug        = "debug"
 	cfgSanityChecks = "sanity-checks"
@@ -160,6 +164,19 @@ var rootCmd = &cobra.Command{
 				MountTag: mountTag,
 				HostPath: hostPath,
 			})
+		}
+
+		if shutdownDeferrerURL := c.GetString(cfgShutdownDeferrerURL); shutdownDeferrerURL != "" {
+			pollInterval, err := time.ParseDuration(c.GetString(cfgShutdownDeferrerPollInterval))
+			if err != nil {
+				return err
+			}
+
+			guest.ShutdownDeferrer = api.ShutdownDeferrer{
+				Enabled:      true,
+				URL:          shutdownDeferrerURL,
+				PollInterval: pollInterval,
+			}
 		}
 
 		// execute QEMU
