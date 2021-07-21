@@ -18,7 +18,10 @@ limitations under the License.
 package root
 
 import (
+	"encoding/base64"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -30,7 +33,6 @@ import (
 	"github.com/giantswarm/containervmm/pkg/distro"
 	"github.com/giantswarm/containervmm/pkg/hypervisor"
 	"github.com/giantswarm/containervmm/pkg/network"
-	"github.com/giantswarm/containervmm/pkg/util"
 )
 
 const (
@@ -46,7 +48,7 @@ const (
 	cfgFlatcarChannel      = "flatcar-channel"
 	cfgFlatcarVersion      = "flatcar-version"
 	cfgFlatcarIgnition     = "flatcar-ignition"
-	cfgFlatcarIgnitionPath = "flatcar-ignition-dir"
+	cfgFlatcarIgnitionFile = "flatcar-ignition-file"
 
 	cfgDebug        = "debug"
 	cfgSanityChecks = "sanity-checks"
@@ -95,18 +97,23 @@ var rootCmd = &cobra.Command{
 		guest.OS.Kernel = kernel
 		guest.OS.Initrd = initrd
 
-		// set Ignition Config
-		// this expect the path where the plain-text Ignition file is stored
-		b64Ignition := c.GetString(cfgFlatcarIgnition)
-		dirIgnition := c.GetString(cfgFlatcarIgnitionPath)
-
-		if b64Ignition != "" {
-			absIgnitionPath, err := util.DecodeBase64ToFile(b64Ignition, dirIgnition)
+		// set Ignition Config by loading ignition data from flags
+		if ignitionPath := c.GetString(cfgFlatcarIgnitionFile); ignitionPath != "" {
+			guest.OS.IgnitionConfig = ignitionPath
+		} else if ignitionString := c.GetString(cfgFlatcarIgnition); ignitionString != "" {
+			ignitionData, err := base64.StdEncoding.DecodeString(ignitionString)
 			if err != nil {
-				return fmt.Errorf("an error occured during the decoding of Ignition config")
+				return fmt.Errorf("decoding ignition as base64 failed: %w", err)
 			}
 
-			guest.OS.IgnitionConfig = absIgnitionPath
+			// Write result to file
+			ignitionPath := filepath.Join(os.TempDir(), "ignition.json")
+			err = os.WriteFile(ignitionPath, ignitionData, 0644)
+			if err != nil {
+				return fmt.Errorf("writing ignition to temporary file failed: %w", err)
+			}
+
+			guest.OS.IgnitionConfig = ignitionPath
 		}
 
 		// Setup networking inside of the container, return the available interfaces
@@ -185,8 +192,8 @@ func init() {
 
 	configStringVar(flags, cfgFlatcarChannel, "stable", "flatcar channel (i.e. stable, beta, alpha)")
 	configStringVar(flags, cfgFlatcarVersion, "", "flatcar version")
-	configStringVar(flags, cfgFlatcarIgnition, "", "base64-encoded Ignition Config")
-	configStringVar(flags, cfgFlatcarIgnitionPath, "/", "dir path of the Ignition config")
+	configStringVar(flags, cfgFlatcarIgnition, "", "optional content of base64-encoded ignition")
+	configStringVar(flags, cfgFlatcarIgnitionFile, "", "optional path to file containing ignition json")
 
 	configBoolVar(flags, cfgSanityChecks, true, "run sanity checks (GPG verification of images)")
 	configBoolVar(flags, cfgDebug, false, "enable debug")
