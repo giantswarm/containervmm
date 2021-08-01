@@ -31,10 +31,11 @@ import (
 
 // Array of container interfaces to ignore (not forward to vm)
 var ignoreInterfaces = map[string]struct{}{
-	"lo": {},
+	"lo":    {},
+	"tunl0": {},
 }
 
-const TAP_PREFIX = "dhcp-bridge"
+const TAP_PREFIX = "tap-"
 
 func SetupContainerNetworking(guest *api.Guest) error {
 	var vmIntfs []api.NetworkInterface
